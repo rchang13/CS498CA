@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.model_selection import train_test_split
+import sys
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression, SGDClassifier
@@ -9,12 +9,15 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 
+data_file_path = sys.argv[1]
+label_file_path = sys.argv[2]
+
 #Read all the data and labels from the input files.
-f = open("Topic_prediction_data_train.txt", "r+")
+f = open(data_file_path, "r+")
 raw_lines = f.readlines()
 f.close()
 
-f = open("Topic_prediction_labels_train.txt", "r+")
+f = open(label_file_path, "r+")
 raw_labels = f.readlines()
 f.close()
 
@@ -50,21 +53,25 @@ train_tfidf = tfidf_transformer.fit_transform(train_counts)
 #The Naive Bayes model
 clf = MultinomialNB().fit(train_tfidf, training_labels)
 res_nb = clf.predict(count_vect.transform(testing_data))
+print("Naive Bayes accuracy:")
 print(np.mean(res_nb == np.array(testing_labels)))
 
 #The linear SVC model
 svc = LinearSVC().fit(train_tfidf, training_labels)
 res_svc = svc.predict(count_vect.transform(testing_data))
+print("LinearSVC accuracy:")
 print(np.mean(res_svc == np.array(testing_labels)))
 
 #The linear SDG model
 sgd = SGDClassifier(loss='hinge', penalty='l2', alpha=0.0001, random_state=42, max_iter=100).fit(train_tfidf, training_labels)
 res_sgd = sgd.predict(count_vect.transform(testing_data))
+print("SGD accuracy:")
 print(np.mean(res_sgd == np.array(testing_labels)))
 
 #The logistic regression model
 lr =  LogisticRegression(random_state=0).fit(train_tfidf, training_labels)
 res_lr = lr.predict(count_vect.transform(testing_data))
+print("Logistic Regression accuracy:")
 print(np.mean(res_lr == np.array(testing_labels)))
 
 #The K nearest neighbor model. It cannot be run due to memory errors.
@@ -75,4 +82,12 @@ print(np.mean(res_lr == np.array(testing_labels)))
 #The decision tree model
 dtree_model = DecisionTreeClassifier(max_depth = 6).fit(train_tfidf, training_labels)
 dtree_predictions = dtree_model.predict(count_vect.transform(testing_data))
+print("Dtree accuracy:")
 print(np.mean(dtree_predictions == np.array(testing_labels)))
+
+print("As you can see, LinearSVC has the best performance. We select LinearSVC over all other methods.")
+
+f = open("output.txt", "w+")
+for num in res_svc:
+	f.write(str(int(num)) + "\n")
+
